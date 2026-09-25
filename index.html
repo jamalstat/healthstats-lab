@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HealthStats Lab | Statistics for Health Research</title>
+<style>
+:root{--bg:#f6f9fb;--panel:#fff;--ink:#173042;--muted:#5d6b76;--accent:#0d6b75;--accent2:#164e63;--line:#d9e2e8;--shadow:0 8px 24px rgba(19,48,66,.08);--radius:18px}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+header{background:linear-gradient(135deg,#0d6b75,#164e63);color:#fff;padding:34px 22px 40px}.wrap{max-width:1180px;margin:0 auto}
+.brand{font-size:14px;letter-spacing:.12em;text-transform:uppercase;opacity:.88}h1{font-size:clamp(36px,5vw,58px);line-height:1.05;margin:10px 0 12px}
+.subtitle{max-width:850px;font-size:20px;opacity:.95;margin:0}nav{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+nav a{color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.35);padding:9px 13px;border-radius:999px;font-size:14px;background:rgba(255,255,255,.08)}
+main{padding:26px 20px 60px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px}
+.kicker{font-size:13px;color:var(--accent);font-weight:750;text-transform:uppercase;letter-spacing:.08em}h2{font-size:28px;margin:6px 0 10px}.muted{color:var(--muted)}
+.hero-grid{display:grid;grid-template-columns:1fr;gap:16px;margin-top:22px}@media(min-width:760px){.hero-grid{grid-template-columns:repeat(2,1fr)}}
+.card{display:block;text-decoration:none;color:inherit;background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow);transition:.15s ease}
+.card:hover{transform:translateY(-2px);border-color:#b8cbd2}.card h3{margin:4px 0 7px;font-size:21px}.card p{margin:0;color:var(--muted)}
+.status{display:inline-block;margin-top:14px;padding:6px 9px;border-radius:999px;font-size:12px;font-weight:700}.live{background:#e7f5ee;color:#17603d}.soon{background:#eef3f5;color:#64727c}
+.section{margin-top:22px}.question-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}@media(min-width:760px){.question-grid{grid-template-columns:repeat(4,1fr)}}
+.q,.module{border:1px solid var(--line);border-radius:14px;padding:16px;background:#fbfdfe}.q strong{display:block;margin-bottom:4px}
+.module-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}@media(min-width:760px){.module-grid{grid-template-columns:repeat(3,1fr)}}
+.button{display:inline-block;margin-top:16px;background:var(--accent);color:#fff;text-decoration:none;padding:10px 14px;border-radius:12px;font-weight:700}
+footer{padding:26px 20px;text-align:center;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<header>
+<div class="wrap">
+<div class="brand">HealthStats Lab</div>
+<h1>Statistics for health research</h1>
+<p class="subtitle">From research question to analysis to interpretation. Interactive learning resources for health sciences students, postgraduate researchers and applied health researchers.</p>
+<nav>
+<a href="#learn">Learn</a><a href="#choose">Choose an analysis</a><a href="#analyse">Analyse data</a>
+<a href="diagnostic-test-accuracy/">Diagnostic tests</a><a href="#interpret">Interpret results</a><a href="#planner">Research planner</a>
+</nav>
+</div>
+</header>
+
+<main class="wrap">
+<section class="panel">
+<div class="kicker">Start here</div>
+<h2>What are you trying to do?</h2>
+<p class="muted">HealthStats Lab is being developed as a collection of connected learning tools. Start from your research question rather than from the name of a statistical test.</p>
+
+<div class="hero-grid">
+<div class="card" id="learn"><div class="kicker">Learn</div><h3>Learn statistics</h3><p>Understand core statistical concepts using health examples, visual explanations and interactive exercises.</p><span class="status soon">Coming soon</span></div>
+<div class="card" id="choose"><div class="kicker">Choose</div><h3>Choose my analysis</h3><p>Work through your research objective, outcome type and study design to identify suitable analytical approaches.</p><span class="status soon">Coming soon</span></div>
+<div class="card" id="analyse"><div class="kicker">Analyse</div><h3>Analyse my data</h3><p>Work through descriptive analyses, group comparisons, association and regression with guided interpretation.</p><span class="status soon">Coming soon</span></div>
+<a class="card" href="diagnostic-test-accuracy/"><div class="kicker">Diagnostic tests</div><h3>Diagnostic Test Accuracy Lab</h3><p>Explore 2×2 tables, sensitivity, specificity, predictive values, prevalence, likelihood ratios and ROC concepts.</p><span class="status live">Available now</span></a>
+<div class="card" id="interpret"><div class="kicker">Interpret</div><h3>Interpretation Clinic</h3><p>Practise interpreting confidence intervals, p-values, effect estimates, regression results and diagnostic measures.</p><span class="status soon">Coming soon</span></div>
+<div class="card" id="planner"><div class="kicker">Plan</div><h3>Research Planner</h3><p>Build a structured statistical analysis framework from your study question, design, outcome and predictors.</p><span class="status soon">Coming soon</span></div>
+</div>
+</section>
+
+<section class="panel section">
+<div class="kicker">Research-question first</div>
+<h2>Choose the question you want to answer</h2>
+<div class="question-grid">
+<div class="q"><strong>Describe</strong><span class="muted">Describe a population, outcome or distribution.</span></div>
+<div class="q"><strong>Compare</strong><span class="muted">Compare two or more groups or time points.</span></div>
+<div class="q"><strong>Associate</strong><span class="muted">Examine relationships between variables.</span></div>
+<div class="q"><strong>Predict</strong><span class="muted">Identify predictors or estimate individual risk.</span></div>
+<div class="q"><strong>Diagnose</strong><span class="muted">Assess diagnostic or screening test performance.</span></div>
+<div class="q"><strong>Follow over time</strong><span class="muted">Analyse repeated or longitudinal measurements.</span></div>
+<div class="q"><strong>Time to event</strong><span class="muted">Study survival or other time-to-event outcomes.</span></div>
+<div class="q"><strong>Plan</strong><span class="muted">Think through sample size and analysis strategy.</span></div>
+</div>
+</section>
+
+<section class="panel section">
+<div class="kicker">Learning pathways</div>
+<h2>Designed for health sciences learners</h2>
+<div class="module-grid">
+<div class="module"><strong>Introductory research methods</strong><p class="muted">Variables, descriptive statistics, uncertainty, confidence intervals and hypothesis testing.</p></div>
+<div class="module"><strong>Applied quantitative methods</strong><p class="muted">Selecting analyses, checking assumptions, interpreting outputs and reporting findings.</p></div>
+<div class="module"><strong>MSc, PhD and researcher support</strong><p class="muted">Analysis planning, regression, longitudinal methods, survival, missing data and advanced topics as the platform develops.</p></div>
+</div>
+<a class="button" href="diagnostic-test-accuracy/">Open Diagnostic Test Accuracy Lab</a>
+</section>
+</main>
+
+<footer>
+<strong>Developed by Dr Jamal Hossain</strong><br>
+Lecturer in Applied Health Statistics, School of Health Sciences, University of Southampton<br>
+Educational resource for teaching and learning statistics<br>
+© 2026 Jamal Hossain
+</footer>
+</body>
+</html>
