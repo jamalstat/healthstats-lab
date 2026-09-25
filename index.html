@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>HealthStats Lab | Diagnostic Test Accuracy Lab</title>
+<style>
+  :root{
+    --bg:#f6f9fb;
+    --panel:#ffffff;
+    --ink:#173042;
+    --muted:#5d6b76;
+    --accent:#0d6b75;
+    --accent2:#164e63;
+    --soft:#e7f3f4;
+    --line:#d9e2e8;
+    --good:#1f7a4d;
+    --warn:#b36b00;
+    --bad:#a33a3a;
+    --shadow:0 8px 24px rgba(19,48,66,.08);
+    --radius:18px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    line-height:1.5;
+  }
+  header{
+    background:linear-gradient(135deg,#0d6b75,#164e63);
+    color:white;
+    padding:28px 20px 30px;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+  .brand{font-size:14px;letter-spacing:.12em;text-transform:uppercase;opacity:.85}
+  h1{font-size:clamp(28px,4vw,44px);line-height:1.12;margin:8px 0 8px}
+  .subtitle{max-width:800px;font-size:18px;opacity:.94;margin:0}
+  nav{
+    display:flex;gap:10px;flex-wrap:wrap;margin-top:22px
+  }
+  nav a{
+    color:white;text-decoration:none;border:1px solid rgba(255,255,255,.35);
+    padding:8px 12px;border-radius:999px;font-size:14px;background:rgba(255,255,255,.08)
+  }
+  main{padding:24px 20px 60px}
+  .grid{display:grid;grid-template-columns:1fr;gap:20px}
+  @media(min-width:900px){.grid.two{grid-template-columns:1.05fr .95fr}}
+  .panel{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:22px
+  }
+  .panel h2{margin:0 0 8px;font-size:24px}
+  .panel h3{margin:18px 0 8px;font-size:18px}
+  .muted{color:var(--muted)}
+  .small{font-size:13px}
+  .callout{
+    background:var(--soft);border-left:4px solid var(--accent);padding:12px 14px;border-radius:10px;margin:12px 0
+  }
+  .matrix{
+    width:100%;border-collapse:separate;border-spacing:8px;margin-top:8px
+  }
+  .matrix th,.matrix td{text-align:center}
+  .matrix th{font-size:13px;color:var(--muted);font-weight:600}
+  .matrix input{
+    width:100%;max-width:120px;padding:12px;border:1px solid var(--line);border-radius:12px;
+    font-size:18px;text-align:center;background:#fbfdfe
+  }
+  .cell-label{font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:6px}
+  .worked{
+    margin-top:14px;padding:16px;border:1px solid var(--line);border-radius:14px;background:#fbfdfe
+  }
+  .worked-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:10px}
+  @media(min-width:760px){.worked-grid{grid-template-columns:1fr 1fr}}
+  .calc-line{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:14px;margin:6px 0}
+  .note{font-size:13px;color:var(--muted)}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  button{
+    border:none;border-radius:12px;padding:10px 14px;font-weight:650;cursor:pointer;
+    background:var(--accent);color:#fff
+  }
+  button.secondary{background:#eef3f5;color:var(--ink);border:1px solid var(--line)}
+  .metrics{
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px
+  }
+  @media(min-width:700px){.metrics{grid-template-columns:repeat(4,minmax(0,1fr))}}
+  .metric{
+    border:1px solid var(--line);border-radius:14px;padding:14px;background:#fbfdfe
+  }
+  .metric .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .metric .value{font-size:27px;font-weight:750;margin-top:3px}
+  .metric .ci{font-size:12px;color:var(--muted)}
+  .formula{
+    display:inline-block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    background:#f0f4f6;padding:3px 6px;border-radius:6px;font-size:13px
+  }
+  .bar{
+    height:28px;width:100%;border-radius:999px;overflow:hidden;display:flex;border:1px solid var(--line);background:#eee
+  }
+  .seg{height:100%}
+  .tp{background:#2b8a5d}.tn{background:#5c7cfa}.fp{background:#f59f00}.fn{background:#e25555}
+  .legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;font-size:13px;color:var(--muted)}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
+  .slider-row{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;margin-top:8px}
+  input[type=range]{width:100%}
+  .big-number{font-size:28px;font-weight:760}
+  .mini-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
+  @media(min-width:700px){.mini-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+  .mini{padding:12px;border:1px solid var(--line);border-radius:12px;background:#fbfdfe}
+  .mini b{display:block;font-size:20px;margin-top:2px}
+  canvas{width:100%;height:300px;border:1px solid var(--line);border-radius:14px;background:#fff}
+  .quiz-card{border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:12px}
+  .option{display:block;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin-top:8px;cursor:pointer}
+  .option:hover{background:#f7fafb}
+  .feedback{margin-top:10px;padding:10px 12px;border-radius:10px;display:none}
+  .feedback.good{display:block;background:#eaf7ef;color:#155c38}
+  .feedback.bad{display:block;background:#fff3e8;color:#7a4700}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+  .tab-btn{background:#eef3f5;color:var(--ink);border:1px solid var(--line)}
+  .tab-btn.active{background:var(--accent);color:#fff}
+  .tab{display:none}.tab.active{display:block}
+  .pill{display:inline-block;background:#eef6f6;color:var(--accent2);padding:5px 9px;border-radius:999px;font-size:12px;font-weight:650;margin:3px}
+  footer{padding:20px;color:var(--muted);font-size:13px;text-align:center}
+  .kicker{font-size:13px;color:var(--accent);font-weight:750;text-transform:uppercase;letter-spacing:.08em}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand">HealthStats Lab</div>
+    <h1>Diagnostic Test Accuracy Lab</h1>
+    <p class="subtitle">An interactive teaching prototype for health sciences students: move from a 2×2 table to diagnostic accuracy, prevalence effects, likelihood ratios, ROC thinking and interpretation.</p>
+    <nav>
+      <a href="#table">2×2 Table</a>
+      <a href="#prevalence">Prevalence Explorer</a>
+      <a href="#lr">Likelihood Ratios</a>
+      <a href="#roc">ROC Explorer</a>
+      <a href="#quiz">Interpretation Clinic</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="panel" style="margin-bottom:20px">
+    <div class="kicker">How to use this lab</div>
+    <h2>Start with a clinical question, not a formula</h2>
+    <p class="muted">Imagine a new screening test is compared with a reference standard. Enter the four cells below. The lab recalculates all measures immediately and then lets you explore what changes when prevalence or the diagnostic threshold changes.</p>
+    <span class="pill">HLTH6205</span><span class="pill">MSc</span><span class="pill">PhD refresher</span><span class="pill">Health research methods</span>
+  </section>
+
+  <div class="grid two">
+    <section class="panel" id="table">
+      <div class="kicker">1. Build the evidence</div>
+      <h2>2×2 diagnostic table</h2>
+      <p class="muted">Use counts, not percentages.</p>
+
+      <table class="matrix" aria-label="2 by 2 diagnostic table">
+        <tr><th></th><th>Disease +</th><th>Disease −</th></tr>
+        <tr>
+          <th>Test +</th>
+          <td>
+            <div class="cell-label">True positive (TP)</div>
+            <input id="tp" type="number" min="0" value="85" aria-label="True positives">
+          </td>
+          <td>
+            <div class="cell-label">False positive (FP)</div>
+            <input id="fp" type="number" min="0" value="20" aria-label="False positives">
+          </td>
+        </tr>
+        <tr>
+          <th>Test −</th>
+          <td>
+            <div class="cell-label">False negative (FN)</div>
+            <input id="fn" type="number" min="0" value="15" aria-label="False negatives">
+          </td>
+          <td>
+            <div class="cell-label">True negative (TN)</div>
+            <input id="tn" type="number" min="0" value="180" aria-label="True negatives">
+          </td>
+        </tr>
+      </table>
+
+      <div class="callout">
+        <strong>What do TP, FP, FN and TN mean?</strong><br>
+        <strong>TP:</strong> has the disease and the test is positive. &nbsp;
+        <strong>FP:</strong> does not have the disease, but the test is positive.<br>
+        <strong>FN:</strong> has the disease, but the test is negative. &nbsp;
+        <strong>TN:</strong> does not have the disease and the test is negative.<br>
+        <span class="small"><strong>Memory tip:</strong> “true” or “false” tells you whether the test result agrees with the reference standard; “positive” or “negative” describes the test result.</span>
+      </div>
+
+      <div class="actions">
+        <button onclick="updateAll()">Recalculate</button>
+        <button class="secondary" onclick="loadExample('screen')">Screening example</button>
+        <button class="secondary" onclick="loadExample('balanced')">Balanced example</button>
+      </div>
+
+      <div class="callout">
+        <strong>Teaching prompt:</strong> Before looking at the answers, predict which measures use the diseased group as their denominator and which use the test-positive group.
+      </div>
+
+      <h3>Visual population</h3>
+      <div class="bar" aria-label="Visual diagnostic outcome distribution">
+        <div id="barTP" class="seg tp"></div>
+        <div id="barFP" class="seg fp"></div>
+        <div id="barFN" class="seg fn"></div>
+        <div id="barTN" class="seg tn"></div>
+      </div>
+      <div class="legend">
+        <span><i class="dot tp"></i>True positive</span>
+        <span><i class="dot fp"></i>False positive</span>
+        <span><i class="dot fn"></i>False negative</span>
+        <span><i class="dot tn"></i>True negative</span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="kicker">2. Read the result</div>
+      <h2>Diagnostic accuracy summary</h2>
+      <div id="metrics" class="metrics"></div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('plain',this)">Plain language</button>
+        <button class="tab-btn" onclick="showTab('formulae',this)">Formulae</button>
+        <button class="tab-btn" onclick="showTab('teaching',this)">Teaching notes</button>
+      </div>
+
+      <div class="tab active" id="plain">
+        <div id="plainText" class="callout"></div>
+      </div>
+      <div class="tab" id="formulae">
+        <p><span class="formula">Sensitivity = TP / (TP + FN)</span></p>
+        <p><span class="formula">Specificity = TN / (TN + FP)</span></p>
+        <p><span class="formula">PPV = TP / (TP + FP)</span></p>
+        <p><span class="formula">NPV = TN / (TN + FN)</span></p>
+        <p><span class="formula">LR+ = Sensitivity / (1 − Specificity)</span></p>
+        <p><span class="formula">LR− = (1 − Sensitivity) / Specificity</span></p>
+      </div>
+      <div class="tab" id="teaching">
+        <p><strong>Sensitivity and specificity</strong> condition on true disease status.</p>
+        <p><strong>PPV and NPV</strong> condition on the observed test result, so they are strongly affected by disease prevalence.</p>
+        <p><strong>Likelihood ratios</strong> summarise how much a test result shifts the odds of disease.</p>
+      </div>
+    </section>
+  </div>
+
+  <section class="panel" id="prevalence" style="margin-top:20px">
+    <div class="kicker">3. Change the population</div>
+    <h2>Prevalence Explorer</h2>
+    <p class="muted">Hold sensitivity and specificity fixed at the values estimated from your 2×2 table. Now change the prevalence and watch predictive values move.</p>
+
+    <div class="slider-row">
+      <input id="prevSlider" type="range" min="1" max="80" value="10" oninput="updatePrevalence()">
+      <div><span class="big-number" id="prevLabel">10%</span></div>
+    </div>
+
+    <div class="mini-grid">
+      <div class="mini"><span class="muted small">Expected PPV</span><b id="expPPV">–</b></div>
+      <div class="mini"><span class="muted small">Expected NPV</span><b id="expNPV">–</b></div>
+      <div class="mini"><span class="muted small">True positives / 1000</span><b id="expTP">–</b></div>
+      <div class="mini"><span class="muted small">False positives / 1000</span><b id="expFP">–</b></div>
+    </div>
+
+    <div id="prevInsight" class="callout"></div>
+  </section>
+
+  <section class="panel" id="lr" style="margin-top:20px">
+    <div class="kicker">4. Move from pre-test to post-test</div>
+    <h2>Likelihood Ratio Explorer</h2>
+    <p class="muted">Choose a pre-test probability. The current LR+ and LR− are used to show how a positive or negative result changes the probability of disease.</p>
+
+    <div class="slider-row">
+      <input id="pretestSlider" type="range" min="1" max="90" value="20" oninput="updateLR()">
+      <div><span class="big-number" id="pretestLabel">20%</span></div>
+    </div>
+
+    <div class="mini-grid">
+      <div class="mini"><span class="muted small">LR+</span><b id="lrPlusBox">–</b></div>
+      <div class="mini"><span class="muted small">After positive test</span><b id="postPos">–</b></div>
+      <div class="mini"><span class="muted small">LR−</span><b id="lrMinusBox">–</b></div>
+      <div class="mini"><span class="muted small">After negative test</span><b id="postNeg">–</b></div>
+    </div>
+
+    <div class="callout">
+      <strong>Three steps:</strong> convert probability to odds, multiply by the likelihood ratio, then convert the post-test odds back to probability.
+    </div>
+
+    <div class="worked">
+      <h3 style="margin-top:0">From pre-test to post-test probability</h3>
+      <p><span class="formula">Pre-test odds = p / (1 − p)</span></p>
+      <p><span class="formula">Post-test odds = Pre-test odds × LR</span></p>
+      <p><span class="formula">Post-test probability = Post-test odds / (1 + Post-test odds)</span></p>
+
+      <div class="worked-grid">
+        <div>
+          <strong>Worked example: positive test</strong>
+          <div id="workedPositive" class="calc-line"></div>
+        </div>
+        <div>
+          <strong>Worked example: negative test</strong>
+          <div id="workedNegative" class="calc-line"></div>
+        </div>
+      </div>
+      <p class="note"><strong>Important:</strong> post-test probability depends on the chosen pre-test probability. It is not an intrinsic property of the diagnostic test.</p>
+    </div>
+  </section>
+
+  <section class="panel" id="roc" style="margin-top:20px">
+    <div class="kicker">5. Change the threshold</div>
+    <h2>ROC and threshold explorer</h2>
+    <p class="muted">This synthetic biomarker example shows why sensitivity and specificity usually trade off when a decision threshold is moved.</p>
+
+    <div class="slider-row">
+      <input id="thresholdSlider" type="range" min="-20" max="120" value="50" oninput="updateROC()">
+      <div><span class="big-number" id="thresholdLabel">50</span></div>
+    </div>
+
+    <div class="mini-grid">
+      <div class="mini"><span class="muted small">Sensitivity</span><b id="rocSens">–</b></div>
+      <div class="mini"><span class="muted small">Specificity</span><b id="rocSpec">–</b></div>
+      <div class="mini"><span class="muted small">False positive rate</span><b id="rocFpr">–</b></div>
+      <div class="mini"><span class="muted small">Youden index</span><b id="youden">–</b></div>
+    </div>
+
+    <div style="margin-top:14px">
+      <canvas id="rocCanvas" width="900" height="320" aria-label="ROC curve"></canvas>
+    </div>
+
+    <div id="rocInsight" class="callout"></div>
+  </section>
+
+  <section class="panel" id="quiz" style="margin-top:20px">
+    <div class="kicker">6. Interpretation clinic</div>
+    <h2>Can you interpret the findings correctly?</h2>
+    <p class="muted">These questions focus on what diagnostic measures mean in words, not just how they are calculated.</p>
+
+    <div class="quiz-card">
+      <strong>Question 1</strong>
+      <p>A test has sensitivity 90%. Which interpretation is correct?</p>
+      <label class="option"><input type="radio" name="q1" value="a" onchange="checkQ1()"> 90% of positive tests truly have the disease.</label>
+      <label class="option"><input type="radio" name="q1" value="b" onchange="checkQ1()"> Of people who truly have the disease, 90% test positive.</label>
+      <label class="option"><input type="radio" name="q1" value="c" onchange="checkQ1()"> Of people without the disease, 90% test negative.</label>
+      <div id="fb1" class="feedback"></div>
+    </div>
+
+    <div class="quiz-card">
+      <strong>Question 2</strong>
+      <p>If disease prevalence falls substantially while sensitivity and specificity remain unchanged, what usually happens?</p>
+      <label class="option"><input type="radio" name="q2" value="a" onchange="checkQ2()"> PPV tends to fall and NPV tends to rise.</label>
+      <label class="option"><input type="radio" name="q2" value="b" onchange="checkQ2()"> Sensitivity necessarily falls.</label>
+      <label class="option"><input type="radio" name="q2" value="c" onchange="checkQ2()"> Specificity necessarily rises.</label>
+      <div id="fb2" class="feedback"></div>
+    </div>
+
+    <div class="quiz-card">
+      <strong>Question 3</strong>
+      <p>What does LR+ primarily tell you?</p>
+      <label class="option"><input type="radio" name="q3" value="a" onchange="checkQ3()"> How much more likely a positive test is in someone with disease than without disease.</label>
+      <label class="option"><input type="radio" name="q3" value="b" onchange="checkQ3()"> The probability that a positive test is correct.</label>
+      <label class="option"><input type="radio" name="q3" value="c" onchange="checkQ3()"> The prevalence of disease in the sample.</label>
+      <div id="fb3" class="feedback"></div>
+    </div>
+
+    <div class="quiz-card">
+      <strong>Question 4</strong>
+      <p>A diagnostic test has specificity 90%. What does this mean?</p>
+      <label class="option"><input type="radio" name="q4" value="a" onchange="checkQ4()"> Among people who do not have the disease, 90% test negative.</label>
+      <label class="option"><input type="radio" name="q4" value="b" onchange="checkQ4()"> Among people who test negative, 90% do not have the disease.</label>
+      <label class="option"><input type="radio" name="q4" value="c" onchange="checkQ4()"> Among people with the disease, 90% test positive.</label>
+      <div id="fb4" class="feedback"></div>
+    </div>
+
+    <div class="quiz-card">
+      <strong>Question 5</strong>
+      <p>A test has a positive predictive value (PPV) of 75%. Which statement is correct?</p>
+      <label class="option"><input type="radio" name="q5" value="a" onchange="checkQ5()"> Among people who test positive, 75% truly have the disease.</label>
+      <label class="option"><input type="radio" name="q5" value="b" onchange="checkQ5()"> Among people with the disease, 75% test positive.</label>
+      <label class="option"><input type="radio" name="q5" value="c" onchange="checkQ5()"> Among people without the disease, 75% test negative.</label>
+      <div id="fb5" class="feedback"></div>
+    </div>
+
+    <div class="quiz-card">
+      <strong>Question 6</strong>
+      <p>A test has a negative predictive value (NPV) of 96%. Which statement is correct?</p>
+      <label class="option"><input type="radio" name="q6" value="a" onchange="checkQ6()"> Among people who test negative, 96% truly do not have the disease.</label>
+      <label class="option"><input type="radio" name="q6" value="b" onchange="checkQ6()"> Among people without the disease, 96% test negative.</label>
+      <label class="option"><input type="radio" name="q6" value="c" onchange="checkQ6()"> Among people who test positive, 96% have the disease.</label>
+      <div id="fb6" class="feedback"></div>
+    </div>
+
+    <div class="quiz-card">
+      <strong>Question 7</strong>
+      <p>A patient's pre-test probability is 20%. After a positive test, the post-test probability is 68.5%. What does 68.5% represent?</p>
+      <label class="option"><input type="radio" name="q7" value="a" onchange="checkQ7()"> The estimated probability that the patient has the disease after taking the positive test result into account.</label>
+      <label class="option"><input type="radio" name="q7" value="b" onchange="checkQ7()"> The sensitivity of the test.</label>
+      <label class="option"><input type="radio" name="q7" value="c" onchange="checkQ7()"> The proportion of all patients who will test positive.</label>
+      <div id="fb7" class="feedback"></div>
+    </div>
+
+    <div class="quiz-card">
+      <strong>Question 8</strong>
+      <p>A patient's pre-test probability is 20%. After a negative test, the post-test probability falls to 3.8%. What is the best interpretation?</p>
+      <label class="option"><input type="radio" name="q8" value="a" onchange="checkQ8()"> The negative result substantially reduces the estimated probability of disease, but does not reduce it to zero.</label>
+      <label class="option"><input type="radio" name="q8" value="b" onchange="checkQ8()"> The disease has been ruled out with certainty.</label>
+      <label class="option"><input type="radio" name="q8" value="c" onchange="checkQ8()"> The specificity of the test is 3.8%.</label>
+      <div id="fb8" class="feedback"></div>
+    </div>
+  </section>
+
+  <section class="panel" style="margin-top:20px">
+    <div class="kicker">For teaching</div>
+    <h2>Suggested classroom sequence</h2>
+    <p>1. Ask students to classify TP, FP, FN and TN from a short clinical vignette. 2. Enter the table and predict sensitivity/specificity before calculating. 3. Move the prevalence slider and discuss why PPV changes. 4. Use LR+ and LR− to connect diagnostic accuracy to clinical probability. 5. Move the biomarker threshold and discuss the sensitivity–specificity trade-off. 6. Finish with the interpretation questions.</p>
+    <p class="muted small">Educational prototype only. It is not intended for clinical decision-making or patient care.</p>
+  </section>
+</main>
+
+<footer>
+  <div style="max-width:900px;margin:0 auto;line-height:1.6">
+    <strong>Developed by Dr Jamal Hossain</strong><br>
+    Lecturer in Applied Health Statistics, School of Health Sciences, University of Southampton<br>
+    Educational resource for teaching and learning statistics<br>
+    © 2026 Jamal Hossain<br>
+    <span style="font-size:12px">HealthStats Lab v0.2 · Diagnostic Test Accuracy Lab · Educational use only. Not intended for clinical decision-making or patient care.</span>
+  </div>
+</footer>
+
+<script>
+let current = {};
+
+function pct(x){ return isFinite(x) ? (100*x).toFixed(1) + '%' : '–'; }
+function num(x,d=2){ return isFinite(x) ? Number(x).toFixed(d) : '–'; }
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+
+function wilson(k,n,z=1.96){
+  if(!n) return [NaN,NaN];
+  let p=k/n, den=1+z*z/n;
+  let centre=(p+z*z/(2*n))/den;
+  let half=z*Math.sqrt((p*(1-p)+z*z/(4*n))/n)/den;
+  return [clamp(centre-half,0,1), clamp(centre+half,0,1)];
+}
+function ciText(ci){ return isFinite(ci[0]) ? `95% CI ${pct(ci[0])} to ${pct(ci[1])}` : ''; }
+
+function readCounts(){
+  const tp=+document.getElementById('tp').value||0;
+  const fp=+document.getElementById('fp').value||0;
+  const fn=+document.getElementById('fn').value||0;
+  const tn=+document.getElementById('tn').value||0;
+  return {tp,fp,fn,tn};
+}
+
+function updateAll(){
+  const {tp,fp,fn,tn}=readCounts();
+  const n=tp+fp+fn+tn;
+  const sens=(tp+fn)?tp/(tp+fn):NaN;
+  const spec=(tn+fp)?tn/(tn+fp):NaN;
+  const ppv=(tp+fp)?tp/(tp+fp):NaN;
+  const npv=(tn+fn)?tn/(tn+fn):NaN;
+  const acc=n?(tp+tn)/n:NaN;
+  const prev=n?(tp+fn)/n:NaN;
+  const lrp=(1-spec)>0?sens/(1-spec):Infinity;
+  const lrm=spec>0?(1-sens)/spec:Infinity;
+  const dor=(isFinite(lrp)&&isFinite(lrm)&&lrm!==0)?lrp/lrm:Infinity;
+
+  current={tp,fp,fn,tn,n,sens,spec,ppv,npv,acc,prev,lrp,lrm,dor};
+
+  const metricData=[
+    ['Sensitivity',pct(sens),ciText(wilson(tp,tp+fn))],
+    ['Specificity',pct(spec),ciText(wilson(tn,tn+fp))],
+    ['PPV',pct(ppv),ciText(wilson(tp,tp+fp))],
+    ['NPV',pct(npv),ciText(wilson(tn,tn+fn))],
+    ['Accuracy',pct(acc),ciText(wilson(tp+tn,n))],
+    ['Prevalence',pct(prev),ciText(wilson(tp+fn,n))],
+    ['LR+',isFinite(lrp)?num(lrp,2):'∞',''],
+    ['LR−',isFinite(lrm)?num(lrm,2):'∞','']
+  ];
+  document.getElementById('metrics').innerHTML = metricData.map(m =>
+    `<div class="metric"><div class="label">${m[0]}</div><div class="value">${m[1]}</div><div class="ci">${m[2]}</div></div>`
+  ).join('');
+
+  document.getElementById('plainText').innerHTML =
+    `Among people who truly have the condition, <strong>${pct(sens)}</strong> tested positive. `+
+    `Among people without the condition, <strong>${pct(spec)}</strong> tested negative. `+
+    `Among positive test results, <strong>${pct(ppv)}</strong> were true positives, while among negative results, `+
+    `<strong>${pct(npv)}</strong> were true negatives.`;
+
+  const parts=[['barTP',tp],['barFP',fp],['barFN',fn],['barTN',tn]];
+  parts.forEach(([id,v])=>document.getElementById(id).style.width=(n?100*v/n:0)+'%');
+
+  updatePrevalence();
+  updateLR();
+}
+
+function loadExample(which){
+  if(which==='screen'){
+    tp.value=90; fp.value=180; fn.value=10; tn.value=720;
+  }else{
+    tp.value=85; fp.value=20; fn.value=15; tn.value=180;
+  }
+  updateAll();
+}
+
+function updatePrevalence(){
+  if(!current.sens && current.sens!==0) updateAll();
+  const p=+document.getElementById('prevSlider').value/100;
+  document.getElementById('prevLabel').textContent=(p*100).toFixed(0)+'%';
+  const se=current.sens, sp=current.spec;
+  const ppv=(se*p)/((se*p)+(1-sp)*(1-p));
+  const npv=(sp*(1-p))/((1-se)*p+sp*(1-p));
+  const tp=1000*p*se;
+  const fp=1000*(1-p)*(1-sp);
+  document.getElementById('expPPV').textContent=pct(ppv);
+  document.getElementById('expNPV').textContent=pct(npv);
+  document.getElementById('expTP').textContent=Math.round(tp);
+  document.getElementById('expFP').textContent=Math.round(fp);
+
+  let msg = p < current.prev
+    ? `Prevalence is now lower than in the original table. Notice how PPV tends to fall because a larger share of positive results can be false positives.`
+    : `Prevalence is now higher than in the original table. Notice how PPV tends to rise, while NPV often falls.`;
+  document.getElementById('prevInsight').innerHTML = `<strong>What changed?</strong> ${msg}`;
+}
+
+function probToOdds(p){return p/(1-p)}
+function oddsToProb(o){return o/(1+o)}
+
+function updateLR(){
+  const p=+document.getElementById('pretestSlider').value/100;
+  document.getElementById('pretestLabel').textContent=(p*100).toFixed(0)+'%';
+  const preOdds=probToOdds(p);
+  const posOdds=preOdds*current.lrp;
+  const negOdds=preOdds*current.lrm;
+  const postPos=oddsToProb(posOdds);
+  const postNeg=oddsToProb(negOdds);
+
+  document.getElementById('lrPlusBox').textContent=isFinite(current.lrp)?num(current.lrp,2):'∞';
+  document.getElementById('lrMinusBox').textContent=isFinite(current.lrm)?num(current.lrm,2):'∞';
+  document.getElementById('postPos').textContent=pct(postPos);
+  document.getElementById('postNeg').textContent=pct(postNeg);
+
+  const pPct=(p*100).toFixed(0);
+  const denom=(1-p).toFixed(2);
+  const preOddsTxt=num(preOdds,3);
+
+  document.getElementById('workedPositive').innerHTML =
+    `Pre-test odds = ${p.toFixed(2)} / ${denom} = ${preOddsTxt}<br>` +
+    `Post-test odds = ${preOddsTxt} × ${num(current.lrp,2)} = ${num(posOdds,3)}<br>` +
+    `Post-test probability = ${num(posOdds,3)} / (1 + ${num(posOdds,3)}) = <strong>${pct(postPos)}</strong>`;
+
+  document.getElementById('workedNegative').innerHTML =
+    `Pre-test odds = ${p.toFixed(2)} / ${denom} = ${preOddsTxt}<br>` +
+    `Post-test odds = ${preOddsTxt} × ${num(current.lrm,2)} = ${num(negOdds,3)}<br>` +
+    `Post-test probability = ${num(negOdds,3)} / (1 + ${num(negOdds,3)}) = <strong>${pct(postNeg)}</strong>`;
+}
+
+function erf(x){
+  const sign = x >= 0 ? 1 : -1;
+  x = Math.abs(x);
+  const a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=0.3275911;
+  const t=1/(1+p*x);
+  const y=1-(((((a5*t+a4)*t)+a3)*t+a2)*t+a1)*t*Math.exp(-x*x);
+  return sign*y;
+}
+function normCDF(x,mu,sd){return 0.5*(1+erf((x-mu)/(sd*Math.sqrt(2))))}
+
+function updateROC(){
+  const t=+document.getElementById('thresholdSlider').value;
+  document.getElementById('thresholdLabel').textContent=t.toFixed(0);
+
+  const mu0=35, sd0=18, mu1=65, sd1=18;
+  const sens=1-normCDF(t,mu1,sd1);
+  const spec=normCDF(t,mu0,sd0);
+  const fpr=1-spec;
+  const y=sens+spec-1;
+
+  document.getElementById('rocSens').textContent=pct(sens);
+  document.getElementById('rocSpec').textContent=pct(spec);
+  document.getElementById('rocFpr').textContent=pct(fpr);
+  document.getElementById('youden').textContent=num(y,2);
+
+  const insight = t<50
+    ? 'Lowering the threshold identifies more diseased people (higher sensitivity) but also creates more false positives (lower specificity).'
+    : 'Raising the threshold usually reduces false positives (higher specificity) but misses more diseased people (lower sensitivity).';
+  document.getElementById('rocInsight').innerHTML='<strong>Threshold lesson:</strong> '+insight;
+
+  drawROC(fpr,sens);
+}
+
+function drawROC(curFpr,curSens){
+  const c=document.getElementById('rocCanvas');
+  const ctx=c.getContext('2d');
+  const W=c.width,H=c.height,pad=48;
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle='#d6e0e5'; ctx.lineWidth=1;
+  for(let i=0;i<=5;i++){
+    let x=pad+(W-2*pad)*i/5, y=H-pad-(H-2*pad)*i/5;
+    ctx.beginPath();ctx.moveTo(x,pad);ctx.lineTo(x,H-pad);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);ctx.stroke();
+  }
+  ctx.strokeStyle='#7a8a95';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(pad,H-pad);ctx.lineTo(W-pad,pad);ctx.stroke();
+
+  const mu0=35,sd0=18,mu1=65,sd1=18;
+  ctx.strokeStyle='#0d6b75';ctx.lineWidth=4;ctx.beginPath();
+  let first=true;
+  for(let t=-40;t<=140;t+=1){
+    const sens=1-normCDF(t,mu1,sd1);
+    const spec=normCDF(t,mu0,sd0);
+    const fpr=1-spec;
+    const x=pad+fpr*(W-2*pad), y=H-pad-sens*(H-2*pad);
+    if(first){ctx.moveTo(x,y);first=false}else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+
+  const px=pad+curFpr*(W-2*pad), py=H-pad-curSens*(H-2*pad);
+  ctx.fillStyle='#a33a3a';ctx.beginPath();ctx.arc(px,py,7,0,2*Math.PI);ctx.fill();
+
+  ctx.fillStyle='#173042';ctx.font='16px system-ui';
+  ctx.fillText('False positive rate (1 − specificity)',W/2-115,H-10);
+  ctx.save();ctx.translate(17,H/2+75);ctx.rotate(-Math.PI/2);ctx.fillText('Sensitivity (true positive rate)',0,0);ctx.restore();
+  ctx.font='13px system-ui';
+  ctx.fillText('0',pad-12,H-pad+18); ctx.fillText('1',W-pad-4,H-pad+18);
+  ctx.fillText('1',pad-22,pad+5);
+}
+
+function showTab(id,btn){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+function feedback(id,good,text){
+  const el=document.getElementById(id);
+  el.className='feedback '+(good?'good':'bad');
+  el.textContent=text;
+}
+function checkQ1(){
+  const v=document.querySelector('input[name=q1]:checked').value;
+  feedback('fb1',v==='b', v==='b'
+    ? 'Correct. Sensitivity conditions on people who truly have the disease.'
+    : 'Not quite. You are mixing sensitivity with predictive values or specificity.');
+}
+function checkQ2(){
+  const v=document.querySelector('input[name=q2]:checked').value;
+  feedback('fb2',v==='a', v==='a'
+    ? 'Correct. Predictive values depend strongly on prevalence, even when sensitivity and specificity remain fixed.'
+    : 'Not quite. Changing prevalence alone does not require sensitivity or specificity to change.');
+}
+function checkQ3(){
+  const v=document.querySelector('input[name=q3]:checked').value;
+  feedback('fb3',v==='a', v==='a'
+    ? 'Correct. LR+ compares the probability of a positive result in disease with the probability of a positive result in non-disease.'
+    : 'Not quite. LR+ is not the same as PPV and does not describe prevalence.');
+}
+function checkQ4(){
+  const v=document.querySelector('input[name=q4]:checked').value;
+  feedback('fb4',v==='a', v==='a'
+    ? 'Correct. Specificity conditions on people who truly do not have the disease.'
+    : 'Not quite. Specificity is the proportion of non-diseased people who test negative; it is not the same as NPV.');
+}
+function checkQ5(){
+  const v=document.querySelector('input[name=q5]:checked').value;
+  feedback('fb5',v==='a', v==='a'
+    ? 'Correct. PPV asks: among people with a positive test result, what proportion truly have the disease?'
+    : 'Not quite. PPV conditions on a positive test result, not on true disease status.');
+}
+function checkQ6(){
+  const v=document.querySelector('input[name=q6]:checked').value;
+  feedback('fb6',v==='a', v==='a'
+    ? 'Correct. NPV asks: among people with a negative test result, what proportion truly do not have the disease?'
+    : 'Not quite. NPV conditions on a negative test result; it is not the same as specificity.');
+}
+function checkQ7(){
+  const v=document.querySelector('input[name=q7]:checked').value;
+  feedback('fb7',v==='a', v==='a'
+    ? 'Correct. Post-test probability is the revised probability of disease after incorporating the diagnostic test result.'
+    : 'Not quite. Post-test probability is not sensitivity and it is not simply the proportion who test positive.');
+}
+function checkQ8(){
+  const v=document.querySelector('input[name=q8]:checked').value;
+  feedback('fb8',v==='a', v==='a'
+    ? 'Correct. A negative result can lower the probability substantially, but a non-zero post-test probability means residual uncertainty remains.'
+    : 'Not quite. A negative test does not automatically rule disease out with certainty, and post-test probability is not specificity.');
+}
+
+document.querySelectorAll('#tp,#fp,#fn,#tn').forEach(el=>el.addEventListener('input',updateAll));
+updateAll();
+updateROC();
+</script>
+</body>
+</html>
